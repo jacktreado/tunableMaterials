@@ -1,0 +1,16 @@
+*.o
+*.xyz
+*.test
+bash/*/slurm
+bash/*/bin
+bash/*/tasks
+*~
+.DS_Store
+*.exe
+*.dat
+*.pos
+*.energy
+*.stats
+*.avi
+*.mp4
+*.mov
