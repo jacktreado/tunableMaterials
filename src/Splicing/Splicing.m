@@ -20,7 +20,7 @@ Ptol            = 1e-8;     % pressure tolerance
 
 strainAmp       = 1e-1;     % strain amplitude
 strainFreq      = 5e-2;     % strain angular frequency
-NCYCLES         = 40;       % number of strain cycles
+NCYCLES         = 100;       % number of strain cycles
 bdamp           = 1.0;      % damping parameter
 makeAVideo      = 0;        % whether or not a video should be made
 
@@ -678,6 +678,16 @@ cij2 = cij;
 phi = sum(pi*r.^2)/(Lx*Ly);
 phi2 = phi;
 
+
+
+
+
+
+
+
+
+
+
 %% Oscillatory strain with discontinuous volume fraction change
 % FIRST JAMMED STATE
 
@@ -723,7 +733,7 @@ NSTEPS          = ceil(totalT/dt);
 virialStress1    = zeros(NSTEPS,4);
 potEnergy1       = zeros(NSTEPS,1);
 kinEnergy1       = zeros(NSTEPS,1);
-instStrain1      = zeros(NSTEPS,1);
+instStrain      = zeros(NSTEPS,1);
 
 % loop over oscillatory shear
 while t < totalT
@@ -895,7 +905,7 @@ while t < totalT
     lastStrain  = currStrain;
     
     % save strain
-    instStrain1(ss) = currStrain;
+    instStrain(ss) = currStrain;
     
     % current strain rate
     strainRate  = gammaDot(strainAmp,strainFreq,t);
@@ -930,12 +940,6 @@ Fy  = Fy2;
 Fxold = Fx;
 Fyold = Fy;
 
-% anonymous function for strains
-gamma = @(g0,w,t) 0.5*g0*(1 - cos(w*t));
-gammaDot = @(g0,w,t) 0.5*g0*w*sin(w*t);
-lastStrain = 0;
-currStrain = 0;
-strainRate = 0;
 
 % time variables
 t       = 0;
@@ -954,7 +958,6 @@ NSTEPS          = ceil(totalT/dt);
 virialStress2    = zeros(NSTEPS,4);
 potEnergy2       = zeros(NSTEPS,1);
 kinEnergy2       = zeros(NSTEPS,1);
-instStrain2      = zeros(NSTEPS,1);
 
 % loop over oscillatory shear
 while t < totalT
@@ -1121,6 +1124,8 @@ while t < totalT
         fprintf('From jammed state 2: t = %0.3g/%0.3g, ss = %d, gam = %0.3g\n',t,totalT,ss,currStrain);
     end
     
+gamma = @(g0,w,t) 0.5*g0*(1 - cos(w*t));
+gammaDot = @(g0,w,t) 0.5*g0*w*sin(w*t);
     % increment time
     t = t + dt;
     ss = ss + 1;
@@ -1129,10 +1134,7 @@ while t < totalT
     currStrain  = gamma(strainAmp,strainFreq,t);
     dStrain     = currStrain - lastStrain;
     lastStrain  = currStrain;
-    
-    % save strain
-    instStrain2(ss) = currStrain;
-    
+        
     % current strain rate
     strainRate  = gammaDot(strainAmp,strainFreq,t);
     
@@ -1167,8 +1169,6 @@ Fxold = Fx;
 Fyold = Fy;
 
 % anonymous function for strains
-gamma = @(g0,w,t) 0.5*g0*(1 - cos(w*t));
-gammaDot = @(g0,w,t) 0.5*g0*w*sin(w*t);
 lastStrain = 0;
 currStrain = 0;
 strainRate = 0;
@@ -1193,11 +1193,10 @@ NSTEPS              = ceil(totalT/dt);
 virialStress3       = zeros(NSTEPS,4);
 potEnergy3          = zeros(NSTEPS,1);
 kinEnergy3          = zeros(NSTEPS,1);
-instStrain3         = zeros(NSTEPS,1);
 
 % phi impulse variables
-tOn                 = 0.25*totalT;
-tOff                = 0.75*totalT;
+tActivation         = pi/3* (tCycle/2/pi);
+tDeactivation       = 4*pi/3 * (tCycle/2/pi);
 instphi             = zeros(NSTEPS,1);
 
 % loop over oscillatory shear
@@ -1366,7 +1365,7 @@ while t < totalT
     end
     
     % set radii based on t
-    if t > tOn && t < tOff
+    if mod(t-tActivation,tCycle) >= 0  && mod(t-tActivation,tCycle) < mod(tDeactivation-tActivation,tCycle)
         r = r2;
         instphi(ss) = phi2;
         phi = phi2;
@@ -1384,10 +1383,7 @@ while t < totalT
     currStrain  = gamma(strainAmp,strainFreq,t);
     dStrain     = currStrain - lastStrain;
     lastStrain  = currStrain;
-    
-    % save strain
-    instStrain3(ss) = currStrain;
-    
+        
     
     % current strain rate
     strainRate  = gammaDot(strainAmp,strainFreq,t);
@@ -1400,7 +1396,7 @@ if makeAVideo == 1
     close(vobj);
 end
 
-%% plot things
+% %% plot things
 
 % virial stress during strain
 vp1 = 0.5*(virialStress1(:,1) + virialStress1(:,4))./(Lx*Ly);
@@ -1414,78 +1410,65 @@ vss3 = virialStress3(:,2)./(Lx*Ly);
 timeVals = (0:dt:totalT)./tCycle;
 cycleInds = floor(timeVals);
 
-% stress over time
-figure(2), clf, hold on, box on;
-plot(timeVals,vss1,'k:','linewidth',1.2);
-plot(timeVals,vss2,'k--','linewidth',1.2);
-plot(timeVals,vss3,'k-','linewidth',1.5);
-xlabel('$2\pi t/\omega$','Interpreter','latex');
-ylabel('$\sigma_{xy}$','Interpreter','latex');
-ax = gca;
-ax.FontSize = 22;
-
-figure(3), clf, hold on, box on;
-plot(timeVals,vp1,'k:','linewidth',1.2);
-plot(timeVals,vp2,'k--','linewidth',1.2);
-plot(timeVals,vp3,'k-','linewidth',1.5);
-xlabel('$2\pi t/\omega$','Interpreter','latex');
-ylabel('$p$','Interpreter','latex');
-ax = gca;
-ax.FontSize = 22;
-
-% potential energy over time
-figure(4), clf, hold on, box on;
-plot(timeVals,potEnergy1,'b:','linewidth',1.2);
-plot(timeVals,potEnergy2,'b--','linewidth',1.2);
-plot(timeVals,potEnergy3,'b-','linewidth',1.5);
-xlabel('$2\pi t/\omega$','Interpreter','latex');
-ylabel('$U$','Interpreter','latex');
-ax = gca;
-ax.FontSize = 22;
-
-
-% plot difference in potential energies over time
-du1 = abs(potEnergy3 - potEnergy1);
-du2 = abs(potEnergy3 - potEnergy2);
-figure(5), clf, hold on, box on;
-plot(timeVals,du1,'b-','linewidth',1.2);
-plot(timeVals,du2,'b-.','linewidth',1.2);
-xlabel('$2\pi t/\omega$','Interpreter','latex');
-ylabel('$\Delta U$','Interpreter','latex');
-ax = gca;
-ax.FontSize = 22;
-ax.YScale = 'log';
-legend({'$|U_{\rm test} - U_1|$','$|U_{\rm test} - U_2|$'},'Interpreter','latex',...
-    'fontsize',16,'location','best');
-
-
+stop = length(vss1);
+start = stop - 10*ceil(tCycle/dt);
 
 % plot shear stress vs strain over time
-NS = length(vss1);
 figure(10), clf, hold on, box on;
-plot(instStrain3(1:NS),vss3,'k--','linewidth',1.2);
-plot(instStrain1(1:NS),vss1,'r-','linewidth',2);
+plot(instStrain(start:stop),vss1(start:stop),'r-','linewidth',2);
+plot(instStrain(start:stop),vss2(start:stop),'g-','linewidth',2);
+plot(instStrain(start:stop),vss3(start:stop),'k--','linewidth',3);
 xlabel('$\gamma$','Interpreter','latex');
 ylabel('$\sigma_{xy}$','Interpreter','latex');
 ax = gca;
 ax.FontSize = 22;
-legend({'test','packing $1$'},'Interpreter','latex',...
-    'fontsize',16,'location','best');
+xlim([min(instStrain)-0.01,max(instStrain)+0.01])
 
-figure(11), clf, hold on, box on;
-plot(instStrain3(1:NS),vss3,'k--','linewidth',1.2);
-plot(instStrain2(1:NS),vss2,'g-','linewidth',2);
-xlabel('$\gamma$','Interpreter','latex');
-ylabel('$\sigma_{xy}$','Interpreter','latex');
-ax = gca;
-ax.FontSize = 22;
-legend({'test','packing $2$'},'Interpreter','latex',...
-    'fontsize',16,'location','best');
+%Animate loops
+figure(11);clf
+miny = min( [min(vss1),min(vss2),min(vss3)]);
+maxy = max( [max(vss1),max(vss2),max(vss3)]);
 
-% plot phi impulse over time
-figure(20), clf, hold on, box on;
-plot(timeVals,instphi,'g-','linewidth',2.5);
-xlabel('$2\pi t/\omega$','Interpreter','latex');
-ylabel('$\phi$','Interpreter','latex');
-ax = gca;
-ax.FontSize = 22;
+xlim([min(instStrain)-0.01,max(instStrain)+0.01])
+ylim([miny,maxy])
+MaxNumPoints = 5*round(NCYCLES/dt);
+h1 = animatedline; set(h1,'color','r','linewidth',2, 'MaximumNumPoints',MaxNumPoints);
+h2 = animatedline; set(h2,'color','g','linewidth',2, 'MaximumNumPoints',MaxNumPoints);
+h3 = animatedline; set(h3,'color','k','linewidth',2, 'MaximumNumPoints',MaxNumPoints);
+
+g1 = animatedline; set(g1,'color','r','marker','o','MarkerFaceColor','r','Markersize',10,'MaximumNumPoints',1);
+g2 = animatedline; set(g2,'color','g','marker','o','MarkerFaceColor','g','Markersize',10,'MaximumNumPoints',1);
+g3 = animatedline; set(g3,'color','k','marker','o','MarkerFaceColor','k','Markersize',10,'MaximumNumPoints',1);
+
+v = VideoWriter('SplicingAnimation.avi','Motion JPEG AVI');
+open(v)
+
+
+i = 1;
+drawjump = round(stop/NCYCLES/30);
+while i <= stop-drawjump
+    title(sprintf('Loop # = %d' , round(i*NCYCLES/stop) ));
+    addpoints(h1,instStrain(i:i+drawjump-1),vss1(i:i+drawjump-1))
+    addpoints(h2,instStrain(i:i+drawjump-1),vss2(i:i+drawjump-1))
+    addpoints(h3,instStrain(i:i+drawjump-1),vss3(i:i+drawjump-1))
+    addpoints(g1,instStrain(i+drawjump-1),vss1(i+drawjump-1));
+    addpoints(g2,instStrain(i+drawjump-1),vss2(i+drawjump-1));
+    addpoints(g3,instStrain(i+drawjump-1),vss3(i+drawjump-1));
+    
+    drawnow
+    i = i + drawjump;
+    frame = getframe(gcf);
+    writeVideo(v,frame);
+end
+    addpoints(h1,instStrain(i-drawjump:stop),vss1(i-drawjump:stop))
+    addpoints(h2,instStrain(i-drawjump:stop),vss2(i-drawjump:stop))
+    addpoints(h3,instStrain(i-drawjump:stop),vss3(i-drawjump:stop))
+    
+    addpoints(g1,instStrain(stop),vss1(stop));
+    addpoints(g2,instStrain(stop),vss2(stop));
+    addpoints(g3,instStrain(stop),vss3(stop));
+    
+    drawnow
+    frame = getframe(gcf);
+    writeVideo(v,frame);
+    close(v);
