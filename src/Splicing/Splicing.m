@@ -7,7 +7,7 @@ clc;
 %% Initialize system
 
 N               = 48;       % number of particles
-phi0            = 0.75;     % initial packing fraction
+phi0            = 0.50;     % initial packing fraction
 dphi0            = 0.001;    % initial delta phi
 dt0             = 0.01;     % time step magnitude
 sr              = 1.4;      % size ratio
@@ -20,10 +20,10 @@ Ptol            = 1e-8;     % pressure tolerance
 
 strainAmp       = 1e-1;     % strain amplitude
 strainFreq      = 5e-2;     % strain angular frequency
-NCYCLES         = 15;       % number of strain cycles
+NCYCLES         = 20;       % number of strain cycles
 bdamp           = 1.0;      % damping parameter
 
-dphi            = 0.01;     % particle size increase
+dphi            = 0.1;     % particle size increase
 
 % strain cycle period
 tCycle          = (2.0*pi)/strainFreq;
@@ -1234,7 +1234,7 @@ vss3 = virialStress3(:,2)./(Lx*Ly);
 
 
 
-%% Plot and animations
+%% Animations
 % time
 timeVals = (0:dt:totalT)./tCycle;
 cycleInds = floor(timeVals);
@@ -1244,11 +1244,80 @@ start = stop - 10*ceil(tCycle/dt);
 
 %Animate loops
 handle = figure(1);clf
-set(handle,'Position',[10,10,720,720],'units','points')
+set(handle,'Position',[0,0,1080,360],'units','points')
 
+
+
+%Particle animation
+subplot(1,3,1)
+title(sprintf('phi = %2.3f' , phi1 ));
+
+axis equal
+box on; set(gca,'XTick',[],'YTick',[]);
+axis([-Lx/4 5/4*Lx -Ly/4 5/4*Ly]);
+
+AXES = gca;
+scale = handle.Position(3)*AXES.Position(3)/(AXES.XLim(2) - AXES.XLim(1));
+RMax1 = max(Ranimation(:,1,1));
+RMin1 = min(Ranimation(:,1,1));
+
+ParticleRMinEdgeSplice1 = animatedline;
+ParticleRMaxEdgeSplice1 = animatedline;
+ParticleRMinCenterSplice1 = animatedline;
+ParticleRMaxCenterSplice1 = animatedline;
+set(ParticleRMaxEdgeSplice1  ,'Marker','o','MarkerEdgeColor','k','linestyle','none')
+set(ParticleRMinEdgeSplice1  ,'Marker','o','MarkerEdgeColor','k','linestyle','none')
+set(ParticleRMaxCenterSplice1,'Marker','+','MarkerEdgeColor','k','Markersize',8,'linestyle','none')
+set(ParticleRMinCenterSplice1,'Marker','+','MarkerEdgeColor','k','Markersize',8,'linestyle','none')
+
+ParticleRMinEdge1 = animatedline;
+ParticleRMaxEdge1 = animatedline;
+ParticleRMinCenter1 = animatedline;
+ParticleRMaxCenter1 = animatedline;
+set(ParticleRMaxEdge1  ,'Marker','o','MarkerEdgeColor','r','Markersize',2*RMax1*scale,'linestyle','none')
+set(ParticleRMinEdge1  ,'Marker','o','MarkerEdgeColor','r','Markersize',2*RMin1*scale,'linestyle','none')
+set(ParticleRMaxCenter1,'Marker','+','MarkerEdgeColor','r','Markersize',4,'linestyle','none')
+set(ParticleRMinCenter1,'Marker','+','MarkerEdgeColor','r','Markersize',4,'linestyle','none')
+
+
+Boundary1 = animatedline;
+set(Boundary1,'MaximumNumPoints',5,'color','m','linewidth',2)
+
+
+
+subplot(1,3,2)
+title(sprintf('phi = %2.3f' , phi2 ));
+
+axis equal
+box on; set(gca,'XTick',[],'YTick',[]);
+axis([-Lx/4 5/4*Lx -Ly/4 5/4*Ly]);
+
+RMax2 = max(Ranimation(:,1,2));
+RMin2 = min(Ranimation(:,1,2));
+
+ParticleRMinEdgeSplice2 = animatedline;
+ParticleRMaxEdgeSplice2 = animatedline;
+ParticleRMinCenterSplice2 = animatedline;
+ParticleRMaxCenterSplice2 = animatedline;
+set(ParticleRMaxEdgeSplice2  ,'Marker','o','MarkerEdgeColor','k','linestyle','none')
+set(ParticleRMinEdgeSplice2  ,'Marker','o','MarkerEdgeColor','k','linestyle','none')
+set(ParticleRMaxCenterSplice2,'Marker','+','MarkerEdgeColor','k','Markersize',8,'linestyle','none')
+set(ParticleRMinCenterSplice2,'Marker','+','MarkerEdgeColor','k','Markersize',8,'linestyle','none')
+
+ParticleRMinEdge2 = animatedline;
+ParticleRMaxEdge2 = animatedline;
+ParticleRMinCenter2 = animatedline;
+ParticleRMaxCenter2 = animatedline;
+set(ParticleRMaxEdge2  ,'Marker','o','MarkerEdgeColor','g','Markersize',2*RMax2*scale,'linestyle','none')
+set(ParticleRMinEdge2  ,'Marker','o','MarkerEdgeColor','g','Markersize',2*RMin2*scale,'linestyle','none')
+set(ParticleRMaxCenter2,'Marker','+','MarkerEdgeColor','g','Markersize',4,'linestyle','none')
+set(ParticleRMinCenter2,'Marker','+','MarkerEdgeColor','g','Markersize',4,'linestyle','none')
+
+Boundary2 = animatedline;
+set(Boundary2,'MaximumNumPoints',5,'color','m','linewidth',2)
 
 %Loop Animation
-subplot(2,2,1)
+subplot(1,3,3)
 miny = min( [min(vss1),min(vss2),min(vss3)]);
 maxy = max( [max(vss1),max(vss2),max(vss3)]);
 
@@ -1263,61 +1332,6 @@ g1 = animatedline; set(g1,'color','r','marker','o','MarkerFaceColor','r','Marker
 g2 = animatedline; set(g2,'color','g','marker','o','MarkerFaceColor','g','Markersize',10,'MaximumNumPoints',1);
 g3 = animatedline; set(g3,'color','k','marker','o','MarkerFaceColor','k','Markersize',10,'MaximumNumPoints',1);
 
-%State 1 animation
-subplot(2,2,2)
-
-axis equal
-box on; set(gca,'XTick',[],'YTick',[]);
-axis([-Lx/4 5/4*Lx -Ly/4 5/4*Ly]);
-
-AXES = gca;
-scale = handle.Position(3)*AXES.Position(3)/(AXES.XLim(2) - AXES.XLim(1));
-RMax1 = max(Ranimation(:,1,1));
-RMin1 = min(Ranimation(:,1,1));
-
-ParticleRMin1 = animatedline;
-ParticleRMax1 = animatedline;
-set(ParticleRMax1,'Marker','o','MarkerFaceColor','r','MarkerEdgeColor','k','Markersize',2*RMax1*scale,'linestyle','none')
-set(ParticleRMin1,'Marker','o','MarkerFaceColor','r','MarkerEdgeColor','k','Markersize',2*RMin1*scale,'linestyle','none')
-
-Boundary1 = animatedline;
-set(Boundary1,'MaximumNumPoints',5,'color','m','linewidth',2)
-
-
-%State 2 animation
-subplot(2,2,3)
-axis equal
-box on; set(gca,'XTick',[],'YTick',[]);
-axis([-Lx/4 5/4*Lx -Ly/4 5/4*Ly]);
-
-AXES = gca;
-scale = handle.Position(3)*AXES.Position(3)/(AXES.XLim(2) - AXES.XLim(1));
-RMax2 = max(Ranimation(:,1,2));
-RMin2 = min(Ranimation(:,1,2));
-
-ParticleRMin2 = animatedline;
-ParticleRMax2 = animatedline;
-set(ParticleRMax2,'Marker','o','MarkerFaceColor','g','MarkerEdgeColor','k','Markersize',2*RMax2*scale,'linestyle','none')
-set(ParticleRMin2,'Marker','o','MarkerFaceColor','g','MarkerEdgeColor','k','Markersize',2*RMin2*scale,'linestyle','none')
-Boundary2 = animatedline;
-set(Boundary2,'MaximumNumPoints',5,'color','m','linewidth',2)
-
-%Spliced animation
-subplot(2,2,4)
-title('Spliced');
-axis equal
-box on; set(gca,'XTick',[],'YTick',[]);
-axis([-Lx/4 5/4*Lx -Ly/4 5/4*Ly]);
-
-AXES = gca;
-scale3 = handle.Position(3)*AXES.Position(3)/(AXES.XLim(2) - AXES.XLim(1));
-ParticleRMin3 = animatedline;
-ParticleRMax3 = animatedline;
-set(ParticleRMax3,'Marker','o','MarkerFaceColor','k','MarkerEdgeColor','k','linestyle','none')
-set(ParticleRMin3,'Marker','o','MarkerFaceColor','k','MarkerEdgeColor','k','linestyle','none')
-
-Boundary3 = animatedline;
-set(Boundary3,'MaximumNumPoints',5,'color','m','linewidth',2)
 
 % AnimateVideo = VideoWriter('SplicingAnimation.avi','Motion JPEG AVI');
 % open(AnimateVideo)
@@ -1325,56 +1339,86 @@ set(Boundary3,'MaximumNumPoints',5,'color','m','linewidth',2)
 
 i = 1;
 drawjump = round(stop/NCYCLES/30);
-subplot(2,2,1);
 while i <= stop-drawjump
     currStrain  = gamma(strainAmp,strainFreq,i*dt);
     
     %Update animation
-    clearpoints(ParticleRMax1)
-    clearpoints(ParticleRMin1)
-    bool = Ranimation(:,i+drawjump-1,1) == RMax1;
-    for xx = -1:1
-        for yy = -1:1
-            addpoints(ParticleRMax1,Xanimation(bool,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
-                Yanimation(bool,i+drawjump-1,1)+yy*Ly);
-            addpoints(ParticleRMin1,Xanimation(~bool,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
-                Yanimation(~bool,i+drawjump-1,1)+yy*Ly);
-        end
-    end
-    addpoints(Boundary1,[0 1 1+currStrain currStrain 0 1]*Lx,[0 0 1 1 0 0]*Ly)
+    clearpoints(ParticleRMaxEdge1)
+    clearpoints(ParticleRMinEdge1)
+    clearpoints(ParticleRMaxCenter1)
+    clearpoints(ParticleRMinCenter1)
     
+    clearpoints(ParticleRMaxEdgeSplice1)
+    clearpoints(ParticleRMinEdgeSplice1)
+    clearpoints(ParticleRMaxCenterSplice1)
+    clearpoints(ParticleRMinCenterSplice1)
     
-    clearpoints(ParticleRMax2)
-    clearpoints(ParticleRMin2)
-    bool = Ranimation(:,i+drawjump-1,2) == RMax2;
-    for xx = -1:1
-        for yy = -1:1
-            addpoints(ParticleRMax2,Xanimation(bool,i+drawjump-1,2)+xx*Lx + currStrain*yy*Ly,...
-                Yanimation(bool,i+drawjump-1,2)+yy*Ly);
-            addpoints(ParticleRMin2,Xanimation(~bool,i+drawjump-1,2)+xx*Lx + currStrain*yy*Ly,...
-                Yanimation(~bool,i+drawjump-1,2)+yy*Ly);
-        end
-    end
-    addpoints(Boundary2,[0 1 1+currStrain currStrain 0 1]*Lx,[0 0 1 1 0 0]*Ly)
+    clearpoints(ParticleRMaxEdge2)
+    clearpoints(ParticleRMinEdge2)
+    clearpoints(ParticleRMaxCenter2)
+    clearpoints(ParticleRMinCenter2)
     
-    
-    clearpoints(ParticleRMax3)
-    clearpoints(ParticleRMin3)
+    clearpoints(ParticleRMaxEdgeSplice2)
+    clearpoints(ParticleRMinEdgeSplice2)
+    clearpoints(ParticleRMaxCenterSplice2)
+    clearpoints(ParticleRMinCenterSplice2)
     
     RMax3 = max(Ranimation(:,i+drawjump-1,3));
     RMin3 = min(Ranimation(:,i+drawjump-1,3));
-    set(ParticleRMax3,'Markersize',2*RMax3*scale3)
-    set(ParticleRMin3,'Markersize',2*RMin3*scale3)
-    bool = Ranimation(:,i+drawjump-1,3) == RMax3;
+    set(ParticleRMaxEdgeSplice1  ,'Markersize',2*RMax3*scale)
+    set(ParticleRMinEdgeSplice1  ,'Markersize',2*RMin3*scale)
+    set(ParticleRMaxEdgeSplice2  ,'Markersize',2*RMax3*scale)
+    set(ParticleRMinEdgeSplice2  ,'Markersize',2*RMin3*scale)
+    
+    bool1 = Ranimation(:,i+drawjump-1,1) == RMax1;
+    bool2 = Ranimation(:,i+drawjump-1,2) == RMax2;
+    bool3 = Ranimation(:,i+drawjump-1,3) == RMax3;
+    
     for xx = -1:1
         for yy = -1:1
-            addpoints(ParticleRMax3,Xanimation(bool,i+drawjump-1,3)+xx*Lx + currStrain*yy*Ly,...
-                Yanimation(bool,i+drawjump-1,3)+yy*Ly);
-            addpoints(ParticleRMin3,Xanimation(~bool,i+drawjump-1,3)+xx*Lx + currStrain*yy*Ly,...
-                Yanimation(~bool,i+drawjump-1,3)+yy*Ly);
+            %Animate state 1
+            addpoints(ParticleRMaxEdge1,Xanimation(bool1,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(bool1,i+drawjump-1,1)+yy*Ly);
+            addpoints(ParticleRMinEdge1,Xanimation(~bool1,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(~bool1,i+drawjump-1,1)+yy*Ly);
+            addpoints(ParticleRMaxCenter1,Xanimation(bool1,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(bool1,i+drawjump-1,1)+yy*Ly);
+            addpoints(ParticleRMinCenter1,Xanimation(~bool1,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(~bool1,i+drawjump-1,1)+yy*Ly);
+            
+            %Animate state 2
+            addpoints(ParticleRMaxEdge2,Xanimation(bool2,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(bool2,i+drawjump-1,1)+yy*Ly);
+            addpoints(ParticleRMinEdge2,Xanimation(~bool2,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(~bool2,i+drawjump-1,1)+yy*Ly);
+            addpoints(ParticleRMaxCenter2,Xanimation(bool2,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(bool2,i+drawjump-1,1)+yy*Ly);
+            addpoints(ParticleRMinCenter2,Xanimation(~bool2,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(~bool2,i+drawjump-1,1)+yy*Ly);
+            
+            %Animate splicing in each subplot
+            addpoints(ParticleRMaxEdgeSplice1,Xanimation(bool3,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(bool3,i+drawjump-1,1)+yy*Ly);
+            addpoints(ParticleRMinEdgeSplice1,Xanimation(~bool3,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(~bool3,i+drawjump-1,1)+yy*Ly);
+            addpoints(ParticleRMaxCenterSplice1,Xanimation(bool3,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(bool3,i+drawjump-1,1)+yy*Ly);
+            addpoints(ParticleRMinCenterSplice1,Xanimation(~bool3,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(~bool3,i+drawjump-1,1)+yy*Ly);
+            
+            addpoints(ParticleRMaxEdgeSplice2,Xanimation(bool3,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(bool3,i+drawjump-1,1)+yy*Ly);
+            addpoints(ParticleRMinEdgeSplice2,Xanimation(~bool3,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(~bool3,i+drawjump-1,1)+yy*Ly);
+            addpoints(ParticleRMaxCenterSplice2,Xanimation(bool3,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(bool3,i+drawjump-1,1)+yy*Ly);
+            addpoints(ParticleRMinCenterSplice2,Xanimation(~bool3,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(~bool3,i+drawjump-1,1)+yy*Ly);
         end
     end
-    addpoints(Boundary3,[0 1 1+currStrain currStrain 0 1]*Lx,[0 0 1 1 0 0]*Ly)
+    addpoints(Boundary1,[0 1 1+currStrain currStrain 0 1]*Lx,[0 0 1 1 0 0]*Ly)
+    addpoints(Boundary2,[0 1 1+currStrain currStrain 0 1]*Lx,[0 0 1 1 0 0]*Ly)
+    
     
     
     addpoints(h1,instStrain(i:i+drawjump-1),vss1(i:i+drawjump-1))
@@ -1384,7 +1428,7 @@ while i <= stop-drawjump
     addpoints(g2,instStrain(i+drawjump-1),vss2(i+drawjump-1));
     addpoints(g3,instStrain(i+drawjump-1),vss3(i+drawjump-1));
     
-    title(sprintf('Loop # = %d' , round(i*NCYCLES/stop) ));
+    title(sprintf('Loop # %d' , round(i*NCYCLES/stop) ));
     
     drawnow
     i = i + drawjump;
