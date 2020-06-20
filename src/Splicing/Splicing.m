@@ -20,14 +20,13 @@ Ptol            = 1e-8;     % pressure tolerance
 
 strainAmp       = 1e-1;     % strain amplitude
 strainFreq      = 5e-2;     % strain angular frequency
-NCYCLES         = 100;       % number of strain cycles
+NCYCLES         = 15;       % number of strain cycles
 bdamp           = 1.0;      % damping parameter
-makeAVideo      = 0;        % whether or not a video should be made
 
 dphi            = 0.01;     % particle size increase
 
 % strain cycle period
-tCycle          = (2.0*pi)/strainFreq; 
+tCycle          = (2.0*pi)/strainFreq;
 
 % number of iterations to skip plotting
 plotskip        = 1e4;
@@ -46,7 +45,7 @@ NNEGMAX         = 2000;
 NDELAY          = 1000;
 
 
-%% Initialize system 
+%% Initialize system
 
 % number of small and large particles
 Nsmall = round(0.5*N);
@@ -157,8 +156,8 @@ while (isjammed == 0 && it < itmax)
         vnorm = sqrt(sum(vx.*vx) + sum(vy.*vy));
         fnorm = sqrt(sum(Fx.*Fx) + sum(Fy.*Fy));
         P = sum(Fx.*vx) + sum(Fy.*vy);
-
-        % plot FIRE information 
+        
+        % plot FIRE information
         if mod(fireit,plotskip) == 0 || fireit == 1
             fprintf('\nOn FIRE step %d\n',fireit);
             fprintf('\t ** fcheck = %0.5g\n',fcheck);
@@ -169,18 +168,18 @@ while (isjammed == 0 && it < itmax)
             fprintf('\t ** vnorm = %0.5g\n',vnorm);
             fprintf('\t ** fnorm = %0.5g\n\n',fnorm);
         end
-
+        
         % Step 2. adjust simulation based on net motion of system
         if (P > 0)
             % increase positive counter
             npPos = npPos + 1;
-
+            
             % reset negative counter
             npNeg = 0;
-
+            
             % update alphat for the next iteration
             alphat = alpha;
-
+            
             % alter simulation if enough positive steps have been taken
             if (npPos > NMIN)
                 % change time step
@@ -188,42 +187,42 @@ while (isjammed == 0 && it < itmax)
                     dt = dt*finc;
                 end
             end
-
+            
             % decrease alpha
             alpha = alpha*falpha;
         else
             % reset positive counter
             npPos = 0;
-
+            
             % increase negative counter
             npNeg = npNeg + 1;
-
+            
             % check for stuck simulation
             if (npNeg > NNEGMAX)
                 fprintf('Simulation negative for too long, ending program here.\n')
                 error('FIRE did not converge');
             end
-
+            
             % decrease time step if past initial delay
             if (it > NMIN)
                 % decrease time step
                 if (dt*fdec > dtmin)
                     dt = dt*fdec;
                 end
-
+                
                 % change alpha
                 alpha = alpha0;
             end
-
+            
             % take a half step backwards
             x = x - 0.5*dt*vx;
             y = y - 0.5*dt*vy;
-
+            
             % reset velocities to 0
             vx = zeros(N,1);
             vy = zeros(N,1);
         end
-
+        
         % update velocities if forces are acting
         if fnorm > 0
             vx = (1 - alpha).*vx + alpha.*(Fx./fnorm)*vnorm;
@@ -237,7 +236,7 @@ while (isjammed == 0 && it < itmax)
         % do periodic boundary conditions
         x = mod(x,Lx);
         y = mod(y,Ly);
-
+        
         % -- Compute new forces
         Fx = zeros(N,1);
         Fy = zeros(N,1);
@@ -330,7 +329,7 @@ while (isjammed == 0 && it < itmax)
     
     % save number of fire iteration
     nits(it,1) = phi;
-    nits(it,2) = fireit; 
+    nits(it,2) = fireit;
     nits(it,3) = phiH;
     
     % update virial pressure
@@ -364,11 +363,11 @@ while (isjammed == 0 && it < itmax)
             
             % old = old upper bound packing fraction
             phiL = phiH - dphi0;
-
+            
             % save upper bound positions
             xH = x;
             yH = y;
-
+            
             % reset velocities
             vx = zeros(N,1);
             vy = zeros(N,1);
@@ -483,17 +482,17 @@ kcheck      = 10*Ktol;
 while ((fcheck > Ftol || kcheck > Ktol || npPMin < NMIN) && fireit < itmax)
     % update iterate
     fireit = fireit + 1;
-
+    
     % Velocity-verlet implementation in FIRE
     vx = vx + 0.5*dt*Fx;
     vy = vy + 0.5*dt*Fy;
-
+    
     % Step 1. calculate P, fnorm, vnorm
     vnorm = sqrt(sum(vx.*vx) + sum(vy.*vy));
     fnorm = sqrt(sum(Fx.*Fx) + sum(Fy.*Fy));
     P = sum(Fx.*vx) + sum(Fy.*vy);
-
-    % plot FIRE information 
+    
+    % plot FIRE information
     if mod(fireit,plotskip) == 0 || fireit == 1
         fprintf('\nOn FIRE step %d\n',fireit);
         fprintf('\t ** fcheck = %0.5g\n',fcheck);
@@ -504,18 +503,18 @@ while ((fcheck > Ftol || kcheck > Ktol || npPMin < NMIN) && fireit < itmax)
         fprintf('\t ** vnorm = %0.5g\n',vnorm);
         fprintf('\t ** fnorm = %0.5g\n\n',fnorm);
     end
-
+    
     % Step 2. adjust simulation based on net motion of system
     if (P > 0)
         % increase positive counter
         npPos = npPos + 1;
-
+        
         % reset negative counter
         npNeg = 0;
-
+        
         % update alphat for the next iteration
         alphat = alpha;
-
+        
         % alter simulation if enough positive steps have been taken
         if (npPos > NMIN)
             % change time step
@@ -523,56 +522,56 @@ while ((fcheck > Ftol || kcheck > Ktol || npPMin < NMIN) && fireit < itmax)
                 dt = dt*finc;
             end
         end
-
+        
         % decrease alpha
         alpha = alpha*falpha;
     else
         % reset positive counter
         npPos = 0;
-
+        
         % increase negative counter
         npNeg = npNeg + 1;
-
+        
         % check for stuck simulation
         if (npNeg > NNEGMAX)
             fprintf('Simulation negative for too long, ending program here.\n')
             error('FIRE did not converge');
         end
-
+        
         % decrease time step if past initial delay
         if (it > NMIN)
             % decrease time step
             if (dt*fdec > dtmin)
                 dt = dt*fdec;
             end
-
+            
             % change alpha
             alpha = alpha0;
         end
-
+        
         % take a half step backwards
         x = x - 0.5*dt*vx;
         y = y - 0.5*dt*vy;
-
+        
         % reset velocities to 0
         vx = zeros(N,1);
         vy = zeros(N,1);
     end
-
+    
     % update velocities if forces are acting
     if fnorm > 0
         vx = (1 - alpha).*vx + alpha.*(Fx./fnorm)*vnorm;
         vy = (1 - alpha).*vy + alpha.*(Fy./fnorm)*vnorm;
     end
-
+    
     % do first verlet update for vertices (assume unit mass)
     x = x + dt*vx;
     y = y + dt*vy;
-
+    
     % do periodic boundary conditions
     x = mod(x,Lx);
     y = mod(y,Ly);
-
+    
     % -- Compute new forces
     Fx = zeros(N,1);
     Fy = zeros(N,1);
@@ -584,12 +583,12 @@ while ((fcheck > Ftol || kcheck > Ktol || npPMin < NMIN) && fireit < itmax)
         xi = x(ii);
         yi = y(ii);
         ri = r(ii);
-
+        
         % loop over particles j = [i+1,N]
         for jj = ii+1:N
             % sigma ij
             sij = ri + r(jj);
-
+            
             % x distance
             dx = x(jj) - xi;
             dx = dx - Lx*round(dx/Lx);
@@ -597,55 +596,55 @@ while ((fcheck > Ftol || kcheck > Ktol || npPMin < NMIN) && fireit < itmax)
                 % y distance
                 dy = y(jj) - yi;
                 dy = dy - Ly*round(dy/Ly);
-
+                
                 % calculate full distance
                 dist = sqrt(dx*dx + dy*dy);
-
+                
                 % check overlap
                 if dist < sij
                     % unit vector
                     ux = dx/dist;
                     uy = dy/dist;
-
+                    
                     % force magnitude
                     ftmp = (1 - dist/sij)/sij;
-
+                    
                     % force in given direction
                     fx = ftmp*ux;
                     fy = ftmp*uy;
-
+                    
                     % update forces
                     Fx(ii) = Fx(ii) - fx;
                     Fy(ii) = Fy(ii) - fy;
-
+                    
                     Fx(jj) = Fx(jj) + fx;
                     Fy(jj) = Fy(jj) + fy;
-
+                    
                     % update virial stress
                     vstress(1) = vstress(1) + fx*dx/(Lx*Ly);    % sigmaXX
                     vstress(2) = vstress(2) + fx*dy/(Lx*Ly);    % sigmaXY
                     vstress(3) = vstress(3) + fy*dx/(Lx*Ly);    % sigmaYX
                     vstress(4) = vstress(4) + fy*dy/(Lx*Ly);    % sigmaYY
-
+                    
                     % update contact network
                     cij(ii,jj) = 1;
                     cij(jj,ii) = 1;
-
+                    
                     % update potential energy
                     U = U + 0.5*(1 - (dist/sij))^2;
                 end
             end
         end
     end
-
+    
     % do second verlet update for vertices
     vx = vx + dt*0.5*Fx;
     vy = vy + dt*0.5*Fy;
-
+    
     % update Kcheck and Fcheck
     fcheck = sqrt(sum(Fx.*Fx) + sum(Fy.*Fy))/N;
     kcheck = 0.5*sum(vx.*vx + vy.*vy)/N;
-
+    
     if fcheck < Ftol
         npPMin = npPMin + 1;
         if npPMin >= NMIN && kcheck < Ktol
@@ -685,10 +684,29 @@ phi2 = phi;
 
 
 
-
-
-
 %% Oscillatory strain with discontinuous volume fraction change
+% anonymous function for strains
+gamma = @(g0,w,t) 0.5*g0*(1 - cos(w*t));
+gammaDot = @(g0,w,t) 0.5*g0*w*sin(w*t);
+lastStrain = 0;
+currStrain = 0;
+strainRate = 0;
+
+% time variables
+t       = 0;
+ss      = 1;
+totalT  = NCYCLES*tCycle;
+dt      = dt0;
+NSKIP   = 500;
+
+
+% Save variables for animation at the end
+NSTEPS     = ceil(totalT/dt);
+Xanimation = zeros(N,NSTEPS,3);
+Yanimation = zeros(N,NSTEPS,3);
+Ranimation = zeros(N,NSTEPS,3);
+
+
 % FIRST JAMMED STATE
 
 % print to console
@@ -709,27 +727,8 @@ Fy  = Fy1;
 Fxold = Fx;
 Fyold = Fy;
 
-% anonymous function for strains
-gamma = @(g0,w,t) 0.5*g0*(1 - cos(w*t));
-gammaDot = @(g0,w,t) 0.5*g0*w*sin(w*t);
-lastStrain = 0;
-currStrain = 0;
-strainRate = 0;
-
-% time variables
-t       = 0;
-ss      = 1;
-totalT  = NCYCLES*tCycle;
-dt      = dt0;
-NSKIP   = 500;
-
-if makeAVideo == 1
-    vobj    = VideoWriter('strainRate1.mp4','MPEG-4');
-    open(vobj);
-end
 
 % store data during cyclic shear
-NSTEPS          = ceil(totalT/dt);
 virialStress1    = zeros(NSTEPS,4);
 potEnergy1       = zeros(NSTEPS,1);
 kinEnergy1       = zeros(NSTEPS,1);
@@ -740,14 +739,14 @@ while t < totalT
     % do first verlet update for vertices
     x = x + dt*vx + 0.5*dt*dt*Fxold;
     y = y + dt*vy + 0.5*dt*dt*Fyold;
-
+    
     % ADD LEbc (on both positions and velocities)
     im  = floor(y/Ly);
     x   = mod(x,Lx);
     y   = mod(y,Ly);
     x   = x - im*currStrain*Ly;
     vx  = vx - im*strainRate*Ly;
-
+    
     % -- Compute new forces
     Fx = zeros(N,1);
     Fy = zeros(N,1);
@@ -759,12 +758,12 @@ while t < totalT
         xi = x(ii);
         yi = y(ii);
         ri = r(ii);
-
+        
         % loop over particles j = [i+1,N]
         for jj = ii+1:N
             % sigma ij
             sij = ri + r(jj);
-
+            
             % y distance
             dy = y(jj) - yi;
             im = round(dy/Ly);
@@ -772,45 +771,45 @@ while t < totalT
             if dy < sij
                 % x distance
                 dx = x(jj) - xi;
-
+                
                 % LEbc
                 dx = x(jj) - xi;
                 dx = dx - Ly*im*currStrain;
                 dx = dx - Lx*round(dx/Lx);
-
+                
                 % calculate full distance
                 dist = sqrt(dx*dx + dy*dy);
-
+                
                 % check overlap
                 if dist < sij
                     % unit vector
                     ux = dx/dist;
                     uy = dy/dist;
-
+                    
                     % force magnitude
                     ftmp = (1 - dist/sij)/sij;
-
+                    
                     % force in given direction
                     fx = ftmp*ux;
                     fy = ftmp*uy;
-
+                    
                     % update forces
                     Fx(ii) = Fx(ii) - fx;
                     Fy(ii) = Fy(ii) - fy;
-
+                    
                     Fx(jj) = Fx(jj) + fx;
                     Fy(jj) = Fy(jj) + fy;
-
+                    
                     % update virial stress
                     vstress(1) = vstress(1) + fx*dx/(Lx*Ly);    % sigmaXX
                     vstress(2) = vstress(2) + fx*dy/(Lx*Ly);    % sigmaXY
                     vstress(3) = vstress(3) + fy*dx/(Lx*Ly);    % sigmaYX
                     vstress(4) = vstress(4) + fy*dy/(Lx*Ly);    % sigmaYY
-
+                    
                     % update contact network
                     cij(ii,jj) = 1;
                     cij(jj,ii) = 1;
-
+                    
                     % update potential energy
                     U = U + 0.5*(1 - (dist/sij))^2;
                 end
@@ -826,7 +825,7 @@ while t < totalT
     
     Fx = (Fx - dampingNumX)./dampingDenom;
     Fy = (Fy - dampingNumY)./dampingDenom;
-
+    
     % do second verlet update for vertices
     vx = vx + dt*0.5*(Fx + Fxold);
     vy = vy + dt*0.5*(Fy + Fyold);
@@ -841,59 +840,14 @@ while t < totalT
     
     % output
     if mod(ss,NSKIP) == 0
-        
-        if makeAVideo == 1
-            % Draw system with deformed boundary
-            figure(1), clf, hold on, box on;
-
-            % draw particles
-            for xx = -1:1
-                for yy = -1:1
-                    for nn = 1:N
-                        xplot = x(nn) - r(nn);
-                        yplot = y(nn) - r(nn);
-                        rectangle('Position',[xplot + xx*Lx + currStrain*yy*Ly yplot+yy*Ly 2*r(nn) 2*r(nn)],'Curvature',[1 1],'FaceColor',[0 0.3 1],'EdgeColor','k');
-                    end
-                end
-            end
-
-            for xx = -1:1
-                for yy = -1:1
-                    % draw contacts
-                    for nn = 1:N
-                        for mm = nn+1:N
-                            if cij(nn,mm) == 1
-                                dy = y(mm) - y(nn);
-                                im = round(dy/Ly);
-                                dy = dy - Ly*im;
-
-                                dx = x(mm) - x(nn);
-                                dx = dx - Ly*im*currStrain;
-                                dx = dx - Lx*round(dx/Lx);
-
-                                line([x(nn) + xx*Lx + currStrain*yy*Ly x(nn) + dx + xx*Lx + currStrain*yy*Ly],[y(nn) + yy*Ly y(nn) + dy + yy*Ly],'linestyle','-','color','k','linewidth',1.5);
-                            end
-                        end
-                    end
-                end
-            end
-
-
-            % draw both boundaries
-            plot([0 1 1+currStrain currStrain 0]*Lx,[0 0 Ly Ly 0],'r');
-            plot([0 1 1 0 0]*Lx,[0 0 Ly Ly 0],'k');
-
-            % axes
-            axis('equal'); box on; set(gca,'XTick',[],'YTick',[]);
-            axis([-Lx/4 5/4*Lx -Ly/4 5/4*Ly]);
-
-            currFrame = getframe(gcf);
-            writeVideo(vobj,currFrame);
-        end
-        
         % print to console
         fprintf('From jammed state 1: t = %0.3g/%0.3g, ss = %d, gam = %0.3g\n',t,totalT,ss,currStrain);
     end
+    
+    %Save variables for animation
+    Xanimation(:,ss,1) = x;
+    Yanimation(:,ss,1) = y;
+    Ranimation(:,ss,1) = r;
     
     % increment time
     t = t + dt;
@@ -912,10 +866,6 @@ while t < totalT
     
     % affine displacement due to shear strain
     x = x + dStrain.*y;
-end
-
-if makeAVideo == 1
-    close(vobj);
 end
 
 
@@ -944,17 +894,9 @@ Fyold = Fy;
 % time variables
 t       = 0;
 ss      = 1;
-totalT  = NCYCLES*tCycle;
 dt      = dt0;
-NSKIP   = 500;
-
-if makeAVideo == 1
-    vobj    = VideoWriter('strainRate2.mp4','MPEG-4');
-    open(vobj);
-end
 
 % store data during cyclic shear
-NSTEPS          = ceil(totalT/dt);
 virialStress2    = zeros(NSTEPS,4);
 potEnergy2       = zeros(NSTEPS,1);
 kinEnergy2       = zeros(NSTEPS,1);
@@ -964,14 +906,14 @@ while t < totalT
     % do first verlet update for vertices
     x = x + dt*vx + 0.5*dt*dt*Fxold;
     y = y + dt*vy + 0.5*dt*dt*Fyold;
-
+    
     % ADD LEbc (on both positions and velocities)
     im  = floor(y/Ly);
     x   = mod(x,Lx);
     y   = mod(y,Ly);
     x   = x - im*currStrain*Ly;
     vx  = vx - im*strainRate*Ly;
-
+    
     % -- Compute new forces
     Fx = zeros(N,1);
     Fy = zeros(N,1);
@@ -983,12 +925,12 @@ while t < totalT
         xi = x(ii);
         yi = y(ii);
         ri = r(ii);
-
+        
         % loop over particles j = [i+1,N]
         for jj = ii+1:N
             % sigma ij
             sij = ri + r(jj);
-
+            
             % y distance
             dy = y(jj) - yi;
             im = round(dy/Ly);
@@ -996,45 +938,45 @@ while t < totalT
             if dy < sij
                 % x distance
                 dx = x(jj) - xi;
-
+                
                 % LEbc
                 dx = x(jj) - xi;
                 dx = dx - Ly*im*currStrain;
                 dx = dx - Lx*round(dx/Lx);
-
+                
                 % calculate full distance
                 dist = sqrt(dx*dx + dy*dy);
-
+                
                 % check overlap
                 if dist < sij
                     % unit vector
                     ux = dx/dist;
                     uy = dy/dist;
-
+                    
                     % force magnitude
                     ftmp = (1 - dist/sij)/sij;
-
+                    
                     % force in given direction
                     fx = ftmp*ux;
                     fy = ftmp*uy;
-
+                    
                     % update forces
                     Fx(ii) = Fx(ii) - fx;
                     Fy(ii) = Fy(ii) - fy;
-
+                    
                     Fx(jj) = Fx(jj) + fx;
                     Fy(jj) = Fy(jj) + fy;
-
+                    
                     % update virial stress
                     vstress(1) = vstress(1) + fx*dx/(Lx*Ly);    % sigmaXX
                     vstress(2) = vstress(2) + fx*dy/(Lx*Ly);    % sigmaXY
                     vstress(3) = vstress(3) + fy*dx/(Lx*Ly);    % sigmaYX
                     vstress(4) = vstress(4) + fy*dy/(Lx*Ly);    % sigmaYY
-
+                    
                     % update contact network
                     cij(ii,jj) = 1;
                     cij(jj,ii) = 1;
-
+                    
                     % update potential energy
                     U = U + 0.5*(1 - (dist/sij))^2;
                 end
@@ -1050,7 +992,7 @@ while t < totalT
     
     Fx = (Fx - dampingNumX)./dampingDenom;
     Fy = (Fy - dampingNumY)./dampingDenom;
-
+    
     % do second verlet update for vertices
     vx = vx + dt*0.5*(Fx + Fxold);
     vy = vy + dt*0.5*(Fy + Fyold);
@@ -1066,66 +1008,15 @@ while t < totalT
     % output
     if mod(ss,NSKIP) == 0
         
-        if makeAVideo == 1
-            % Draw system with deformed boundary
-            figure(1), clf, hold on, box on;
-
-            % draw particles
-            for xx = -1:1
-                for yy = -1:1
-                    for nn = 1:N
-                        xplot = x(nn) - r(nn);
-                        yplot = y(nn) - r(nn);
-                        rectangle('Position',[xplot + xx*Lx + currStrain*yy*Ly yplot+yy*Ly 2*r(nn) 2*r(nn)],'Curvature',[1 1],'FaceColor',[0 0.3 1],'EdgeColor','k');
-                    end
-                end
-            end
-
-            for xx = -1:1
-                for yy = -1:1
-                    % draw contacts
-                    for nn = 1:N
-                        for mm = nn+1:N
-                            if cij(nn,mm) == 1
-                                dy = y(mm) - y(nn);
-                                im = round(dy/Ly);
-                                dy = dy - Ly*im;
-
-                                dx = x(mm) - x(nn);
-                                dx = dx - Ly*im*currStrain;
-                                dx = dx - Lx*round(dx/Lx);
-
-
-                                if (im ~= 0 && xx == 0)
-                                    test = 1;
-                                end
-
-                                line([x(nn) + xx*Lx + currStrain*yy*Ly x(nn) + dx + xx*Lx + currStrain*yy*Ly],[y(nn) + yy*Ly y(nn) + dy + yy*Ly],'linestyle','-','color','k','linewidth',1.5);
-                            end
-                        end
-                    end
-                end
-            end
-
-
-            % draw both boundaries
-            plot([0 1 1+currStrain currStrain 0]*Lx,[0 0 Ly Ly 0],'r');
-            plot([0 1 1 0 0]*Lx,[0 0 Ly Ly 0],'k');
-
-            % axes
-            axis('equal'); box on; set(gca,'XTick',[],'YTick',[]);
-            axis([-Lx/4 5/4*Lx -Ly/4 5/4*Ly]);
-
-            currFrame = getframe(gcf);
-            writeVideo(vobj,currFrame);
-        end
-        
         % print to console
         fprintf('From jammed state 2: t = %0.3g/%0.3g, ss = %d, gam = %0.3g\n',t,totalT,ss,currStrain);
     end
     
-gamma = @(g0,w,t) 0.5*g0*(1 - cos(w*t));
-gammaDot = @(g0,w,t) 0.5*g0*w*sin(w*t);
+    %Save variables for animation
+    Xanimation(:,ss,2) = x;
+    Yanimation(:,ss,2) = y;
+    Ranimation(:,ss,2) = r;
+    
     % increment time
     t = t + dt;
     ss = ss + 1;
@@ -1134,7 +1025,7 @@ gammaDot = @(g0,w,t) 0.5*g0*w*sin(w*t);
     currStrain  = gamma(strainAmp,strainFreq,t);
     dStrain     = currStrain - lastStrain;
     lastStrain  = currStrain;
-        
+    
     % current strain rate
     strainRate  = gammaDot(strainAmp,strainFreq,t);
     
@@ -1142,9 +1033,6 @@ gammaDot = @(g0,w,t) 0.5*g0*w*sin(w*t);
     x = x + dStrain.*y;
 end
 
-if makeAVideo == 1
-    close(vobj);
-end
 
 %% Oscillatory strain with discontinuous volume fraction change
 % WITH VOLUME FRACTION CHANGE
@@ -1176,20 +1064,9 @@ strainRate = 0;
 % time variables
 t       = 0;
 ss      = 1;
-totalT  = NCYCLES*tCycle;
 dt      = dt0;
-NSKIP   = 500;
-
-% can update makeAVideo here if desired
-makeAVideo = 0;
-
-if makeAVideo == 1
-    vobj    = VideoWriter('strainRateImpulse.mp4','MPEG-4');
-    open(vobj);
-end
 
 % store data during cyclic shear
-NSTEPS              = ceil(totalT/dt);
 virialStress3       = zeros(NSTEPS,4);
 potEnergy3          = zeros(NSTEPS,1);
 kinEnergy3          = zeros(NSTEPS,1);
@@ -1204,14 +1081,14 @@ while t < totalT
     % do first verlet update for vertices
     x = x + dt*vx + 0.5*dt*dt*Fxold;
     y = y + dt*vy + 0.5*dt*dt*Fyold;
-
+    
     % ADD LEbc (on both positions and velocities)
     im  = floor(y/Ly);
     x   = mod(x,Lx);
     y   = mod(y,Ly);
     x   = x - im*currStrain*Ly;
     vx  = vx - im*strainRate*Ly;
-
+    
     % -- Compute new forces
     Fx = zeros(N,1);
     Fy = zeros(N,1);
@@ -1223,12 +1100,12 @@ while t < totalT
         xi = x(ii);
         yi = y(ii);
         ri = r(ii);
-
+        
         % loop over particles j = [i+1,N]
         for jj = ii+1:N
             % sigma ij
             sij = ri + r(jj);
-
+            
             % y distance
             dy = y(jj) - yi;
             im = round(dy/Ly);
@@ -1236,45 +1113,45 @@ while t < totalT
             if dy < sij
                 % x distance
                 dx = x(jj) - xi;
-
+                
                 % LEbc
                 dx = x(jj) - xi;
                 dx = dx - Ly*im*currStrain;
                 dx = dx - Lx*round(dx/Lx);
-
+                
                 % calculate full distance
                 dist = sqrt(dx*dx + dy*dy);
-
+                
                 % check overlap
                 if dist < sij
                     % unit vector
                     ux = dx/dist;
                     uy = dy/dist;
-
+                    
                     % force magnitude
                     ftmp = (1 - dist/sij)/sij;
-
+                    
                     % force in given direction
                     fx = ftmp*ux;
                     fy = ftmp*uy;
-
+                    
                     % update forces
                     Fx(ii) = Fx(ii) - fx;
                     Fy(ii) = Fy(ii) - fy;
-
+                    
                     Fx(jj) = Fx(jj) + fx;
                     Fy(jj) = Fy(jj) + fy;
-
+                    
                     % update virial stress
                     vstress(1) = vstress(1) + fx*dx/(Lx*Ly);    % sigmaXX
                     vstress(2) = vstress(2) + fx*dy/(Lx*Ly);    % sigmaXY
                     vstress(3) = vstress(3) + fy*dx/(Lx*Ly);    % sigmaYX
                     vstress(4) = vstress(4) + fy*dy/(Lx*Ly);    % sigmaYY
-
+                    
                     % update contact network
                     cij(ii,jj) = 1;
                     cij(jj,ii) = 1;
-
+                    
                     % update potential energy
                     U = U + 0.5*(1 - (dist/sij))^2;
                 end
@@ -1290,7 +1167,7 @@ while t < totalT
     
     Fx = (Fx - dampingNumX)./dampingDenom;
     Fy = (Fy - dampingNumY)./dampingDenom;
-
+    
     % do second verlet update for vertices
     vx = vx + dt*0.5*(Fx + Fxold);
     vy = vy + dt*0.5*(Fy + Fyold);
@@ -1306,63 +1183,14 @@ while t < totalT
     % output
     if mod(ss,NSKIP) == 0
         
-        if makeAVideo == 1
-            % Draw system with deformed boundary
-            figure(1), clf, hold on, box on;
-
-            % draw particles
-            for xx = -1:1
-                for yy = -1:1
-                    for nn = 1:N
-                        xplot = x(nn) - r(nn);
-                        yplot = y(nn) - r(nn);
-                        rectangle('Position',[xplot + xx*Lx + currStrain*yy*Ly yplot+yy*Ly 2*r(nn) 2*r(nn)],'Curvature',[1 1],'FaceColor',[0 0.3 1],'EdgeColor','k');
-                    end
-                end
-            end
-
-            for xx = -1:1
-                for yy = -1:1
-                    % draw contacts
-                    for nn = 1:N
-                        for mm = nn+1:N
-                            if cij(nn,mm) == 1
-                                dy = y(mm) - y(nn);
-                                im = round(dy/Ly);
-                                dy = dy - Ly*im;
-
-                                dx = x(mm) - x(nn);
-                                dx = dx - Ly*im*currStrain;
-                                dx = dx - Lx*round(dx/Lx);
-
-
-                                if (im ~= 0 && xx == 0)
-                                    test = 1;
-                                end
-
-                                line([x(nn) + xx*Lx + currStrain*yy*Ly x(nn) + dx + xx*Lx + currStrain*yy*Ly],[y(nn) + yy*Ly y(nn) + dy + yy*Ly],'linestyle','-','color','k','linewidth',1.5);
-                            end
-                        end
-                    end
-                end
-            end
-
-
-            % draw both boundaries
-            plot([0 1 1+currStrain currStrain 0]*Lx,[0 0 Ly Ly 0],'r');
-            plot([0 1 1 0 0]*Lx,[0 0 Ly Ly 0],'k');
-
-            % axes
-            axis('equal'); box on; set(gca,'XTick',[],'YTick',[]);
-            axis([-Lx/4 5/4*Lx -Ly/4 5/4*Ly]);
-
-            currFrame = getframe(gcf);
-            writeVideo(vobj,currFrame);
-        end
-        
         % print to console
         fprintf('Impulse protocol: phi %0.3g, t = %0.3g/%0.3g, ss = %d, gam = %0.3g\n',phi,t,totalT,ss,currStrain);
     end
+    
+    %Save variables for animation
+    Xanimation(:,ss,3) = x;
+    Yanimation(:,ss,3) = y;
+    Ranimation(:,ss,3) = r;
     
     % set radii based on t
     if mod(t-tActivation,tCycle) >= 0  && mod(t-tActivation,tCycle) < mod(tDeactivation-tActivation,tCycle)
@@ -1383,7 +1211,7 @@ while t < totalT
     currStrain  = gamma(strainAmp,strainFreq,t);
     dStrain     = currStrain - lastStrain;
     lastStrain  = currStrain;
-        
+    
     
     % current strain rate
     strainRate  = gammaDot(strainAmp,strainFreq,t);
@@ -1392,12 +1220,7 @@ while t < totalT
     x = x + dStrain.*y;
 end
 
-if makeAVideo == 1
-    close(vobj);
-end
-
-% %% plot things
-
+%% Stress calculation
 % virial stress during strain
 vp1 = 0.5*(virialStress1(:,1) + virialStress1(:,4))./(Lx*Ly);
 vp2 = 0.5*(virialStress2(:,1) + virialStress2(:,4))./(Lx*Ly);
@@ -1406,6 +1229,12 @@ vss1 = virialStress1(:,2)./(Lx*Ly);
 vss2 = virialStress2(:,2)./(Lx*Ly);
 vss3 = virialStress3(:,2)./(Lx*Ly);
 
+
+
+
+
+
+%% Plot and animations
 % time
 timeVals = (0:dt:totalT)./tCycle;
 cycleInds = floor(timeVals);
@@ -1413,25 +1242,19 @@ cycleInds = floor(timeVals);
 stop = length(vss1);
 start = stop - 10*ceil(tCycle/dt);
 
-% plot shear stress vs strain over time
-figure(10), clf, hold on, box on;
-plot(instStrain(start:stop),vss1(start:stop),'r-','linewidth',2);
-plot(instStrain(start:stop),vss2(start:stop),'g-','linewidth',2);
-plot(instStrain(start:stop),vss3(start:stop),'k--','linewidth',3);
-xlabel('$\gamma$','Interpreter','latex');
-ylabel('$\sigma_{xy}$','Interpreter','latex');
-ax = gca;
-ax.FontSize = 22;
-xlim([min(instStrain)-0.01,max(instStrain)+0.01])
-
 %Animate loops
-figure(11);clf
+handle = figure(1);clf
+set(handle,'Position',[10,10,720,720],'units','points')
+
+
+%Loop Animation
+subplot(2,2,1)
 miny = min( [min(vss1),min(vss2),min(vss3)]);
 maxy = max( [max(vss1),max(vss2),max(vss3)]);
 
 xlim([min(instStrain)-0.01,max(instStrain)+0.01])
 ylim([miny,maxy])
-MaxNumPoints = 5*round(NCYCLES/dt);
+MaxNumPoints = 5*round(stop/NCYCLES);
 h1 = animatedline; set(h1,'color','r','linewidth',2, 'MaximumNumPoints',MaxNumPoints);
 h2 = animatedline; set(h2,'color','g','linewidth',2, 'MaximumNumPoints',MaxNumPoints);
 h3 = animatedline; set(h3,'color','k','linewidth',2, 'MaximumNumPoints',MaxNumPoints);
@@ -1440,14 +1263,120 @@ g1 = animatedline; set(g1,'color','r','marker','o','MarkerFaceColor','r','Marker
 g2 = animatedline; set(g2,'color','g','marker','o','MarkerFaceColor','g','Markersize',10,'MaximumNumPoints',1);
 g3 = animatedline; set(g3,'color','k','marker','o','MarkerFaceColor','k','Markersize',10,'MaximumNumPoints',1);
 
-v = VideoWriter('SplicingAnimation.avi','Motion JPEG AVI');
-open(v)
+%State 1 animation
+subplot(2,2,2)
+
+axis equal
+box on; set(gca,'XTick',[],'YTick',[]);
+axis([-Lx/4 5/4*Lx -Ly/4 5/4*Ly]);
+
+AXES = gca;
+scale = handle.Position(3)*AXES.Position(3)/(AXES.XLim(2) - AXES.XLim(1));
+RMax1 = max(Ranimation(:,1,1));
+RMin1 = min(Ranimation(:,1,1));
+
+ParticleRMin1 = animatedline;
+ParticleRMax1 = animatedline;
+set(ParticleRMax1,'Marker','o','MarkerFaceColor','r','MarkerEdgeColor','k','Markersize',2*RMax1*scale,'linestyle','none')
+set(ParticleRMin1,'Marker','o','MarkerFaceColor','r','MarkerEdgeColor','k','Markersize',2*RMin1*scale,'linestyle','none')
+
+Boundary1 = animatedline;
+set(Boundary1,'MaximumNumPoints',5,'color','m','linewidth',2)
+
+
+%State 2 animation
+subplot(2,2,3)
+axis equal
+box on; set(gca,'XTick',[],'YTick',[]);
+axis([-Lx/4 5/4*Lx -Ly/4 5/4*Ly]);
+
+AXES = gca;
+scale = handle.Position(3)*AXES.Position(3)/(AXES.XLim(2) - AXES.XLim(1));
+RMax2 = max(Ranimation(:,1,2));
+RMin2 = min(Ranimation(:,1,2));
+
+ParticleRMin2 = animatedline;
+ParticleRMax2 = animatedline;
+set(ParticleRMax2,'Marker','o','MarkerFaceColor','g','MarkerEdgeColor','k','Markersize',2*RMax2*scale,'linestyle','none')
+set(ParticleRMin2,'Marker','o','MarkerFaceColor','g','MarkerEdgeColor','k','Markersize',2*RMin2*scale,'linestyle','none')
+Boundary2 = animatedline;
+set(Boundary2,'MaximumNumPoints',5,'color','m','linewidth',2)
+
+%Spliced animation
+subplot(2,2,4)
+title('Spliced');
+axis equal
+box on; set(gca,'XTick',[],'YTick',[]);
+axis([-Lx/4 5/4*Lx -Ly/4 5/4*Ly]);
+
+AXES = gca;
+scale3 = handle.Position(3)*AXES.Position(3)/(AXES.XLim(2) - AXES.XLim(1));
+ParticleRMin3 = animatedline;
+ParticleRMax3 = animatedline;
+set(ParticleRMax3,'Marker','o','MarkerFaceColor','k','MarkerEdgeColor','k','linestyle','none')
+set(ParticleRMin3,'Marker','o','MarkerFaceColor','k','MarkerEdgeColor','k','linestyle','none')
+
+Boundary3 = animatedline;
+set(Boundary3,'MaximumNumPoints',5,'color','m','linewidth',2)
+
+% AnimateVideo = VideoWriter('SplicingAnimation.avi','Motion JPEG AVI');
+% open(AnimateVideo)
 
 
 i = 1;
 drawjump = round(stop/NCYCLES/30);
+subplot(2,2,1);
 while i <= stop-drawjump
-    title(sprintf('Loop # = %d' , round(i*NCYCLES/stop) ));
+    currStrain  = gamma(strainAmp,strainFreq,i*dt);
+    
+    %Update animation
+    clearpoints(ParticleRMax1)
+    clearpoints(ParticleRMin1)
+    bool = Ranimation(:,i+drawjump-1,1) == RMax1;
+    for xx = -1:1
+        for yy = -1:1
+            addpoints(ParticleRMax1,Xanimation(bool,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(bool,i+drawjump-1,1)+yy*Ly);
+            addpoints(ParticleRMin1,Xanimation(~bool,i+drawjump-1,1)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(~bool,i+drawjump-1,1)+yy*Ly);
+        end
+    end
+    addpoints(Boundary1,[0 1 1+currStrain currStrain 0 1]*Lx,[0 0 1 1 0 0]*Ly)
+    
+    
+    clearpoints(ParticleRMax2)
+    clearpoints(ParticleRMin2)
+    bool = Ranimation(:,i+drawjump-1,2) == RMax2;
+    for xx = -1:1
+        for yy = -1:1
+            addpoints(ParticleRMax2,Xanimation(bool,i+drawjump-1,2)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(bool,i+drawjump-1,2)+yy*Ly);
+            addpoints(ParticleRMin2,Xanimation(~bool,i+drawjump-1,2)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(~bool,i+drawjump-1,2)+yy*Ly);
+        end
+    end
+    addpoints(Boundary2,[0 1 1+currStrain currStrain 0 1]*Lx,[0 0 1 1 0 0]*Ly)
+    
+    
+    clearpoints(ParticleRMax3)
+    clearpoints(ParticleRMin3)
+    
+    RMax3 = max(Ranimation(:,i+drawjump-1,3));
+    RMin3 = min(Ranimation(:,i+drawjump-1,3));
+    set(ParticleRMax3,'Markersize',2*RMax3*scale3)
+    set(ParticleRMin3,'Markersize',2*RMin3*scale3)
+    bool = Ranimation(:,i+drawjump-1,3) == RMax3;
+    for xx = -1:1
+        for yy = -1:1
+            addpoints(ParticleRMax3,Xanimation(bool,i+drawjump-1,3)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(bool,i+drawjump-1,3)+yy*Ly);
+            addpoints(ParticleRMin3,Xanimation(~bool,i+drawjump-1,3)+xx*Lx + currStrain*yy*Ly,...
+                Yanimation(~bool,i+drawjump-1,3)+yy*Ly);
+        end
+    end
+    addpoints(Boundary3,[0 1 1+currStrain currStrain 0 1]*Lx,[0 0 1 1 0 0]*Ly)
+    
+    
     addpoints(h1,instStrain(i:i+drawjump-1),vss1(i:i+drawjump-1))
     addpoints(h2,instStrain(i:i+drawjump-1),vss2(i:i+drawjump-1))
     addpoints(h3,instStrain(i:i+drawjump-1),vss3(i:i+drawjump-1))
@@ -1455,20 +1384,67 @@ while i <= stop-drawjump
     addpoints(g2,instStrain(i+drawjump-1),vss2(i+drawjump-1));
     addpoints(g3,instStrain(i+drawjump-1),vss3(i+drawjump-1));
     
+    title(sprintf('Loop # = %d' , round(i*NCYCLES/stop) ));
+    
     drawnow
     i = i + drawjump;
-    frame = getframe(gcf);
-    writeVideo(v,frame);
+    
+    if exist('AnimateVideo','var'), writeVideo(AnimateVideo,getframe(gcf)); end
 end
-    addpoints(h1,instStrain(i-drawjump:stop),vss1(i-drawjump:stop))
-    addpoints(h2,instStrain(i-drawjump:stop),vss2(i-drawjump:stop))
-    addpoints(h3,instStrain(i-drawjump:stop),vss3(i-drawjump:stop))
-    
-    addpoints(g1,instStrain(stop),vss1(stop));
-    addpoints(g2,instStrain(stop),vss2(stop));
-    addpoints(g3,instStrain(stop),vss3(stop));
-    
-    drawnow
-    frame = getframe(gcf);
-    writeVideo(v,frame);
-    close(v);
+
+if exist('AnimateVideo','var')
+    close(AnimateVideo); clear AnimateVideo
+end
+%
+% %
+% % draw particles using curved rectangles
+%
+%
+% % Draw system with deformed boundary
+% figure(2), clf, hold on, box on;
+%
+% % draw particles
+% for xx = -1:1
+%     for yy = -1:1
+%         for nn = 1:N
+%             xplot = x(nn) - r(nn);
+%             yplot = y(nn) - r(nn);
+%             rectangle('Position',[xplot + xx*Lx + currStrain*yy*Ly yplot+yy*Ly 2*r(nn) 2*r(nn)],'Curvature',[1 1],'FaceColor',[0 0.3 1],'EdgeColor','k');
+%         end
+%     end
+% end
+%
+% for xx = -1:1
+%     for yy = -1:1
+%         % draw contacts
+%         for nn = 1:N
+%             for mm = nn+1:N
+%                 if cij(nn,mm) == 1
+%                     dy = y(mm) - y(nn);
+%                     im = round(dy/Ly);
+%                     dy = dy - Ly*im;
+%
+%                     dx = x(mm) - x(nn);
+%                     dx = dx - Ly*im*currStrain;
+%                     dx = dx - Lx*round(dx/Lx);
+%
+%
+%                     if (im ~= 0 && xx == 0)
+%                         test = 1;
+%                     end
+%
+%                     line([x(nn) + xx*Lx + currStrain*yy*Ly x(nn) + dx + xx*Lx + currStrain*yy*Ly],[y(nn) + yy*Ly y(nn) + dy + yy*Ly],'linestyle','-','color','k','linewidth',1.5);
+%                 end
+%             end
+%         end
+%     end
+% end
+%
+%
+% % draw both boundaries
+% plot([0 1 1+currStrain currStrain 0]*Lx,[0 0 Ly Ly 0],'r');
+% plot([0 1 1 0 0]*Lx,[0 0 Ly Ly 0],'k');
+%
+% % axes
+% axis('equal'); box on; set(gca,'XTick',[],'YTick',[]);
+% axis([-Lx/4 5/4*Lx -Ly/4 5/4*Ly]);
