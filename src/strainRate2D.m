@@ -606,10 +606,7 @@ while t < totalT
     vy = vy + dt*0.5*(Fy + Fyold);
     
     Fxold = Fx;
-    Fyold = Fy;
-    
-    % compute kinetic virial stress contributions
-    
+    Fyold = Fy;    
     
     % store state functions
     staticVStress(ss,:) = vstress';
