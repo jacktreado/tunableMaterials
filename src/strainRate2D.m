@@ -14,9 +14,9 @@ sr              = 1.4;      % size ratio
 seed            = 1;        % random number seed
 T               = 1;        % initial temperature
 
-Ftol            = 1e-12;    % force tolerance
+Ftol            = 1e-15;    % force tolerance
 Ktol            = 1e-25;    % kinetic tolerance
-Ptol            = 1e-7;     % pressure tolerance
+Ptol            = 1e-8;     % pressure tolerance
 
 strainAmp       = 1e-1;     % strain amplitude
 strainFreq      = 1e-2;     % strain angular frequency
@@ -489,7 +489,8 @@ end
 
 % store data during cyclic shear
 NSTEPS          = ceil(totalT/dt);
-virialStress    = zeros(NSTEPS,4);
+staticVStress   = zeros(NSTEPS,4);
+kineticVStress  = zeros(NSTEPS,4);
 potEnergy       = zeros(NSTEPS,1);
 kinEnergy       = zeros(NSTEPS,1);
 instStrain      = zeros(NSTEPS,1);
@@ -560,7 +561,7 @@ while t < totalT
                     Fx(jj) = Fx(jj) + fx;
                     Fy(jj) = Fy(jj) + fy;
 
-                    % update virial stress
+                    % update static virial stress
                     vstress(1) = vstress(1) + fx*dx/(Lx*Ly);    % sigmaXX
                     vstress(2) = vstress(2) + fx*dy/(Lx*Ly);    % sigmaXY
                     vstress(3) = vstress(3) + fy*dx/(Lx*Ly);    % sigmaYX
@@ -576,6 +577,20 @@ while t < totalT
             end
         end
     end
+    
+    % add kinetic component to viral stress
+    meanvx = mean(vx);
+    meanvy = mean(vy);
+
+    % compute deviations from mean velocity for each particle
+    dvx = vx - meanvx;
+    dvy = vy - meanvy;
+
+    % add to virial stress
+    vstress(1) = vstress(1) - sum(dvx.*dvx)/(Lx*Ly);
+    vstress(2) = vstress(2) - sum(dvx.*dvy)/(Lx*Ly);
+    vstress(3) = vstress(3) - sum(dvy.*dvx)/(Lx*Ly);
+    vstress(4) = vstress(4) - sum(dvy.*dvy)/(Lx*Ly);
     
     % implement damping with velocity verlet
     dampingNumX = bdamp*(vx - 0.5*Fxold*dt);
@@ -593,8 +608,11 @@ while t < totalT
     Fxold = Fx;
     Fyold = Fy;
     
+    % compute kinetic virial stress contributions
+    
+    
     % store state functions
-    virialStress(ss,:) = vstress';
+    staticVStress(ss,:) = vstress';
     potEnergy(ss) = U;
     kinEnergy(ss) = 0.5*sum(vx.^2 + vy.^2);
     
