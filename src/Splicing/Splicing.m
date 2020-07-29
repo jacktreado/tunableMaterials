@@ -915,6 +915,20 @@ while t < totalT
             end
         end
         
+        % add kinetic component to viral stress
+        meanvx = mean(vx);
+        meanvy = mean(vy);
+
+        % compute deviations from mean velocity for each particle
+        dvx = vx - meanvx;
+        dvy = vy - meanvy;
+
+        % add to virial stress
+        vstress(1) = vstress(1) - sum(dvx.*dvx)/(Lx*Ly);
+        vstress(2) = vstress(2) - sum(dvx.*dvy)/(Lx*Ly);
+        vstress(3) = vstress(3) - sum(dvy.*dvx)/(Lx*Ly);
+        vstress(4) = vstress(4) - sum(dvy.*dvy)/(Lx*Ly);
+        
         % implement damping with velocity verlet
         dampingNumX = bdamp*(vx - 0.5*Fxold*dt);
         dampingNumY = bdamp*(vy - 0.5*Fyold*dt);
